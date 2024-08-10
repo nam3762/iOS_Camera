@@ -7,6 +7,8 @@ export default function App() {
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [isClicked, setIsClicked] = useState(false);
+  const [scanned, setScanned] = useState(false);
+  const [scannedData, setScannedData] = useState<string | null>(null);
 
   if (!permission) {
     // Camera permissions are still loading.
@@ -33,6 +35,13 @@ export default function App() {
     setIsClicked((prevState) => !prevState);
   }
 
+  const handleBarcodeScanned = (scanningResult: any) => {
+    if (scanned) return;
+
+    setScanned(true);
+    setScannedData(scanningResult.data);
+  };
+
   const cameraModule = (
     <CameraView
       style={styles.camera}
@@ -40,13 +49,25 @@ export default function App() {
       barcodeScannerSettings={{
         barcodeTypes: ["qr"],
       }}
+      onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
     >
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
           <Text style={styles.text}>Flip Camera</Text>
-          <Button title="Close Camera" onPress={handleClick}></Button>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleClick}>
+          <Text style={styles.text}>Close Camera</Text>
         </TouchableOpacity>
       </View>
+      {scanned && (
+        <View>
+          <Text>Scanned Data: {scannedData}</Text>
+          <Button
+            title={"Tap to Scan Again"}
+            onPress={() => setScanned(false)}
+          />
+        </View>
+      )}
     </CameraView>
   );
 
